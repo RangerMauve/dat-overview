@@ -1,2 +1,45 @@
-# dat-overview
-Some slides describing how Dat works and why it's useful
+# Dat Overview
+
+## How does the web work?
+
+
+### Web Pages
+
+### Web Servers
+
+### Publishing
+
+## What are some pitfalls?
+
+### Network / Server outage
+
+## How else can could it work?
+
+### Peer to Peer publishing
+
+### Partial network loss
+
+### Serving from cache
+
+## Quick Demo of Dat publishing
+
+## Dat Internals
+
+### Peer Discovery
+
+### Replication Protocol
+
+### Append-only Logs
+
+### Filesystem abstraction
+
+## Who's using it
+
+- Beaker
+- Cliqz
+- Cabal
+- Pushpin
+
+## Conclusion
+
+## Questions
