@@ -1,0 +1,5 @@
+sequenceDiagram
+  Writer ->> Content: Upload data for Example.txt
+  Writer ->> Metadata: Update pointer for Example.txt
+  Reader ->> Metadata: Find latest pointer
+  Reader ->> Content: Download data

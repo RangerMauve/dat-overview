@@ -2,10 +2,13 @@
 
 ## How does the web work?
 
-
 ### Web Pages
 
+HTML / JS / CC --> Web Page
+
 ### Web Servers
+
+Users --> Server
 
 ### Publishing
 

@@ -20,28 +20,290 @@
     margin: 0 auto;
     display: block;
   }
+
+  .datbg {
+    background: #2aca4b;
+    color: #fff;
+  }
+  .beakerbg {
+    background: #5743ff;
+    color: #fff;
+  }
+  .purplebg {
+    background: #ae40ca;
+    color: #fff;
+  }
+
+  a:link, a:visited { color: inherit; }
+
 </style>
 <textarea id="source">
 
+class: center, middle, datbg
+
+# Dat Overview
+
+by [@RangerMauve](https://twitter.com/RangerMauve)
+
+<small>Press `P` for speaker notes</small>
+
+???
+
+Hello, today we're going to be looking at the state of the web, some of it's pitfalls and how Dat improves upon it with the peer to peer web.
+
+---
+
+class: center, middle, beakerbg
+
+## 🤔 How does the web work? 🤔
+
+???
+
+Before we get into Dat, lets quickly look at how the web works
+
+---
+
 class: center, middle
 
-# Title
+![HTML, JavaScript and CSS form a webpage](assets/webpages.mermaid.svg)
+
+???
+
+The core part of the web is web pages.
+
+They consist of some HTML for the structure and text content, some CSS for styling the display of the page, and JavaScript for interactivity.
 
 ---
 
-![Example diagram](assets/example.mermaid.svg)
+class: center, middle
+
+![Users connect to servers](assets/servers.mermaid.svg)
+
+???
+
+These files are typically stored or generated on the fly by web servers.
 
 ---
 
-# Agenda
+class: center, middle
 
-1. Introduction
-2. Deep-dive
-3. ...
+![Publisher connects to server, reader reads from server](assets/publishing.mermaid.svg)
+
+???
+
+Publishers connect to servers and store their contents on them, readers will them connect to these servers to read the data
 
 ---
 
-# Introduction
+class: center, middle, datbg
+
+# 😎 Great! 😎
+
+???
+
+So this sounds all cool, right?
+
+---
+
+class: center, middle, beakerbg
+
+# 🤔 Unless? 🤔
+
+???
+
+Well, there's just one problem to consider
+
+---
+
+class: center, middle
+
+![When you can't reach the server everyone is sad](assets/outage.mermaid.svg)
+
+???
+
+Sadly, this system is fragile. There's a lot of things that can go wrong in ways that totally destroy the system.
+
+You might just not have an internet connections at the moment.
+
+Your government might be censoring a particular bit of information.
+
+You might not have money to either host the data, or to have an internet connection to load the data.
+
+Lastly, the server can go down for any number of reasons and break everything.
+
+---
+
+class: center, middle, purplebg
+
+# 🌟✨P2P✨🌟
+
+???
+
+P2P provides another story for how this can all work
+
+---
+
+class: center, middle
+
+![User publishes to other user](assets/p2p.mermaid.svg)
+
+???
+
+Someobdy can create some content, and then transfer it directly to whoever wants it over the P2P network
+
+This is more resiliant since
+
+---
+
+class: center, middle
+
+![Data propogating through network](assets/p2p-down.mermaid.svg)
+
+???
+
+The p2p network is more resiliant to outages since you can load data from other peers
+
+---
+
+class: center, middle
+
+![Dat logo](assets/dat-logo.png)
+
+???
+
+This is what Dat enables. It lets you transport data over a p2p network without tying you to a specific server.
+
+---
+
+class: center, middle, purplebg
+
+# 😤 Demo Time! 😤
+
+???
+
+- Share screen
+- Create folder
+- Make index.html
+- Load folder in Beaker
+- Show site
+
+---
+
+class: center, middle, datbg
+
+## 🧠 How does it work? 🧠
+
+???
+
+Lets look at some of the interneals
+
+---
+
+class: center, middle
+
+## Peer Discovery
+
+![Connect between peers through DHT](assets/swarm.mermaid.svg)
+
+???
+
+Dat uses a Distributed Hash Table for discovering IP addresses for peers trying to share a Dat Archive.
+
+A DHT is like a key value store where every peer in the network stores a little bit of the data.
+
+An algorithm called Kademlia is used to determine which peers store which data and makes it efficient to do lookups as the network size grows.
+
+When a peer wants to share an archive, it publishes it's IP address on the DHT as a value for a key that's detived from the Dat URL.
+
+The key is derived using a hashing function so that the actual URL isn't being shared anywhere.
+
+This is done because the URL is used as an encryption key between two peers which prevents node that don't have it from being able to access the data.
+
+When a node boots up and wants to discover peers, it will query the DHT for the discovery key and will get a list of IP addresses.
+
+Then it will attempt to establish connections to peers and start replicating data.
+
+---
+
+class: center, middle
+
+## Append-Only Logs
+
+![Log items linking together](assets/logs.mermaid.svg)
+
+Once we have connected to a peer we start exchanging data for append only logs.
+
+An append only log is a data structure that's kind of like a linked list, or an oplog, or a blockchain.
+
+You have a history of items, and each new item links to the previous one.
+
+Dat overlays a data structure called a Merkle DAG (Directed Acyclic Graph) wich lets you download a subset of the log and still be able to verify it's integrity.
+
+Part of the way it does this is that the latest "head" of the merkle DAG is signed by the private key of the archive.
+
+The public key (used in the Dat URL) is then used to verify that the DAG is valid.
+
+Dat's replication protocol has a way to efficiently compare which subsets of the logs two peers have and enables peers to request ranges of the others' logs to be sent over the connection.
+
+---
+
+class: center, middle
+
+## Filesystem Abstraction
+
+![Load to content feed then metadata feed](assets/fs.mermaid.svg)
+
+Dat builds its filesystem abstraction on top of two append only logs.
+
+One of the logs is used to store the raw content of files, and the other is used to store metadata about the folder structure.
+
+When a user adds a file to an archive, they first load the file contents into the content feed.
+
+Then, they take the start and end index of the file in the feed, and append an item to the metadata feed pointing the file at those indexes.
+
+When a peer wants to load a file, they'll search for it's path in the metadata feed, then request to download the range from the content feed.
+
+What's interesting is that Dat can stream the data for the file and stream it's data to the application as it's being loaded from peers.
+
+At the applicaiton level, you can interact with Dat the way you would any regular filesystem and it will handle all the loading under the hood.
+
+---
+
+class: center, middle, purplebg
+
+## 🔧 [SDK](https://github.com/datproject/sdk) 🔧
+
+???
+
+All of this stuff is abstracted away by the Dat SDK which enables you to build apps using JavaScript in Node.js and the Browser.
+
+It figures out getting networking to work in both Node and the Browser (using WebRTC and a Proxy), picks sane defaults for where to store your files, and wires everything together to improve network efficiency.
+
+This is the place to go if you want to get started with building applications with Dat.
+
+---
+
+class: center, middle, beakerbg
+
+# Projects
+
+- [Commandline Interface](https://docs.datproject.org/docs/cli-intro)
+- [Beaker](https://beakerbrowser.com/)
+- [Cliqz](https://cliqz.com/en/latest)
+- [Cabal](https://cabal.chat/)
+- [Pushpin](https://github.com/inkandswitch/pushpin)
+
+---
+
+class: center, middle. purplebg
+
+# Thank you!
+
+---
+
+class: center, middle
+
+# Questions?
 
 </textarea>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js">
